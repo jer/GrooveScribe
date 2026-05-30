@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>My Drum Lessons</title>
+
+	<!-- This one script pulls in everything needed to render + play a groove. -->
+	<script src="./js/groove_display.js"></script>
+
+	<style>
+		body { max-width: 800px; margin: 0 auto; padding: 1rem; font-family: sans-serif; line-height: 1.5; }
+		h1 { border-bottom: 2px solid #ddd; padding-bottom: .3rem; }
+		.lesson { margin-bottom: 2.5rem; }
+	</style>
+</head>
+<body>
+
+	<h1>My Drum Lessons</h1>
+	<p>A few grooves I'm working on. Click play on any of them.</p>
+
+	<!--
+		HOW TO ADD A BEAT:
+		1. In the editor (index.html), build your groove.
+		2. Click Share, copy the FULL url, and grab just the "?..." query part.
+		3. Paste it as the first argument below.
+
+		Signature: AddGrooveDisplayToPage(grooveURL, showPlayer, linkToEditor, expandPlayer)
+		  showPlayer    -> show the MIDI play controls
+		  linkToEditor  -> add a link to open this groove in the full editor
+		  expandPlayer  -> start with the player expanded
+	-->
+
+	<div class="lesson">
+		<h2>8th Note Rock</h2>
+		<p>The foundational groove — steady 8th notes on the hats, backbeat on 2 and 4.</p>
+		<script>
+			GrooveDisplay.AddGrooveDisplayToPage(
+				'?Mode=view&TimeSig=4/4&Div=8&Tempo=80&Measures=1&H=|xxxxxxxx|&S=|--O---O-|&K=|o---o---|',
+				true, true, true);
+		</script>
+	</div>
+
+	<div class="lesson">
+		<h2>Purdie Shuffle</h2>
+		<p>A half-time shuffle with ghost notes — slow it down and keep the ghosts soft.</p>
+		<script>
+			GrooveDisplay.AddGrooveDisplayToPage(
+				'?Mode=view&TimeSig=4/4&Div=12&Swing=0&Tempo=100&Title=Purdie%20Shuffle&Measures=1&H=|x-xx-xx-xx-x|&S=|-g--g-Og--g-|&K=|o----o-----o|',
+				true, true, true);
+		</script>
+	</div>
+
+	<!-- Copy a .lesson block above to add more. -->
+
+</body>
+</html>
