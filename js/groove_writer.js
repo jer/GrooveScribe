@@ -3982,22 +3982,19 @@ function GrooveWriter() {
 	function fillInShortenedURLInFullURLPopup(fullURL, cssIdOfTextFieldToFill) {
 		document.getElementById("embedCodeCheckbox").checked = false;  // uncheck embedCodeCheckbox, because it is not compatible
 
-		var params = {
-			"dynamicLinkInfo": {
-				"domainUriPrefix": "https://gscribe.com/share",
-				"link": fullURL
-			}
-		};
-
+		// Use TinyURL's free api-create endpoint.  It requires no API key, is CORS
+		// enabled (so it works from a static browser-only deploy), and returns the
+		// shortened link as plain text.  (Replaced the retired Firebase Dynamic Links.)
 		var xhr = new XMLHttpRequest();
-		xhr.open('POST', 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=AIzaSyBx4So11fGFPgTI62nP-JmxrxHmuRpJ120');
-		xhr.setRequestHeader('Content-Type', 'application/json');
+		xhr.open('GET', 'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(fullURL));
 		xhr.onload = function() {
-			if (xhr.status === 200) {
+			var shortURL = xhr.responseText.trim();
+			// TinyURL returns the short link as plain text on success, or an error
+			// string (e.g. "Error") on failure -- guard against treating that as a URL.
+			if (xhr.status === 200 && shortURL.indexOf("http") === 0) {
 				// success
-				var response = JSON.parse(xhr.responseText);
 				var textField = document.getElementById(cssIdOfTextFieldToFill);
-				textField.value = response.shortLink;
+				textField.value = shortURL;
 				// select the URL for copy/paste
 				textField.focus();
 				textField.select();
@@ -4006,7 +4003,10 @@ function GrooveWriter() {
 				document.getElementById("shortenerCheckbox").checked = false;  // request failed
 			}
 		};
-		xhr.send(JSON.stringify(params));
+		xhr.onerror = function() {
+			document.getElementById("shortenerCheckbox").checked = false;  // request failed
+		};
+		xhr.send();
 
 	}
 
