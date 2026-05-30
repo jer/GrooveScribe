@@ -3982,16 +3982,25 @@ function GrooveWriter() {
 	function fillInShortenedURLInFullURLPopup(fullURL, cssIdOfTextFieldToFill) {
 		document.getElementById("embedCodeCheckbox").checked = false;  // uncheck embedCodeCheckbox, because it is not compatible
 
-		// Use TinyURL's free api-create endpoint.  It requires no API key, is CORS
-		// enabled (so it works from a static browser-only deploy), and returns the
-		// shortened link as plain text.  (Replaced the retired Firebase Dynamic Links.)
+		// Use spoo.me's free shortening endpoint.  It requires no API key, sends a
+		// wildcard CORS header (so it works from a static browser-only deploy), and
+		// redirects straight to the destination with no interstitial page.
+		// (Replaced the retired Firebase Dynamic Links.)  Note: spoo.me percent-encodes
+		// the "|" measure delimiters to %7C, which noteArraysFromURLData() decodes.
 		var xhr = new XMLHttpRequest();
-		xhr.open('GET', 'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(fullURL));
+		xhr.open('POST', 'https://spoo.me/');
+		// Content-Type and Accept are CORS-safelisted, so no preflight is triggered.
+		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		xhr.setRequestHeader('Accept', 'application/json');
 		xhr.onload = function() {
-			var shortURL = xhr.responseText.trim();
-			// TinyURL returns the short link as plain text on success, or an error
-			// string (e.g. "Error") on failure -- guard against treating that as a URL.
-			if (xhr.status === 200 && shortURL.indexOf("http") === 0) {
+			var shortURL = "";
+			if (xhr.status === 200) {
+				try {
+					// promote http -> https so the link matches an https deploy
+					shortURL = (JSON.parse(xhr.responseText).short_url || "").replace(/^http:/, "https:");
+				} catch (e) { /* fall through to the failure path below */ }
+			}
+			if (shortURL.indexOf("http") === 0) {
 				// success
 				var textField = document.getElementById(cssIdOfTextFieldToFill);
 				textField.value = shortURL;
@@ -4006,7 +4015,7 @@ function GrooveWriter() {
 		xhr.onerror = function() {
 			document.getElementById("shortenerCheckbox").checked = false;  // request failed
 		};
-		xhr.send();
+		xhr.send('url=' + encodeURIComponent(fullURL));
 
 	}
 
