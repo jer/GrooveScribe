@@ -78,7 +78,11 @@
 		.card-title { margin: 0; font-size: 1.15rem; }
 		.card-title .byline { font-weight: 400; font-size: .9rem; color: var(--muted); }
 		.blurb { margin: .4rem 0 .75rem; color: var(--text); }
-		.embed { overflow-x: auto; }   /* let wide multi-measure sheets scroll on small screens */
+		/* Hide the tiny sub-pixel scrollbar the embed otherwise shows; the sheet music
+		   scales to fit. Only enable horizontal scroll on narrow phones, where the
+		   MIDI player's min-width (450px) genuinely overflows. */
+		.embed { overflow: hidden; }
+		@media (max-width: 520px) { .embed { overflow-x: auto; } }
 	</style>
 </head>
 <body>
