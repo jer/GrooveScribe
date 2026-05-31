@@ -5,112 +5,253 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>My Drum Lessons</title>
 
-	<!-- This one script pulls in everything needed to render + play a groove. -->
+	<!-- Pulls in everything needed to render + play a groove (GrooveDisplay + deps). -->
 	<script src="./js/groove_display.js"></script>
 
 	<style>
-		body { max-width: 800px; margin: 0 auto; padding: 1rem; font-family: sans-serif; line-height: 1.5; }
-		h1 { border-bottom: 2px solid #ddd; padding-bottom: .3rem; }
-		.lesson { margin-bottom: 2.5rem; }
+		:root {
+			--accent: #0d9488;          /* teal */
+			--accent-dark: #0f766e;
+			--bg: #f7f8fa;
+			--card: #ffffff;
+			--text: #1f2933;
+			--muted: #6b7280;
+			--border: #e5e7eb;
+		}
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			background: var(--bg);
+			color: var(--text);
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			line-height: 1.5;
+		}
+		.wrap { max-width: 860px; margin: 0 auto; padding: 0 1rem 3rem; }
+
+		header { padding: 2rem 0 1rem; }
+		header h1 { margin: 0; font-size: 2rem; letter-spacing: -0.02em; }
+		header .tagline { margin: .25rem 0 0; color: var(--muted); }
+
+		/* Sticky tab bar */
+		.tabs {
+			position: sticky; top: 0; z-index: 10;
+			display: flex; gap: .5rem;
+			padding: .75rem 0;
+			margin-bottom: 1.5rem;
+			background: var(--bg);
+			border-bottom: 1px solid var(--border);
+			overflow-x: auto;
+		}
+		.tab {
+			flex: 0 0 auto;
+			padding: .5rem 1.1rem;
+			border: 1px solid var(--border);
+			border-radius: 999px;
+			background: var(--card);
+			color: var(--text);
+			font: inherit; font-weight: 600;
+			cursor: pointer;
+			transition: background .15s, color .15s, border-color .15s;
+		}
+		.tab:hover { border-color: var(--accent); color: var(--accent-dark); }
+		.tab.active {
+			background: var(--accent); border-color: var(--accent); color: #fff;
+		}
+
+		.section { display: none; }
+		.section.visible { display: block; animation: fade .2s ease; }
+		@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+		.section h2.section-title { margin: 0 0 1rem; font-size: 1.25rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+		/* Groove cards */
+		.card {
+			background: var(--card);
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 1.25rem 1.25rem .75rem;
+			margin-bottom: 1.5rem;
+			box-shadow: 0 1px 2px rgba(0,0,0,.04);
+			transition: transform .15s ease, box-shadow .15s ease;
+		}
+		.card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+		.card-title { margin: 0; font-size: 1.15rem; }
+		.card-title .byline { font-weight: 400; font-size: .9rem; color: var(--muted); }
+		.blurb { margin: .4rem 0 .75rem; color: var(--text); }
+		.embed { overflow-x: auto; }   /* let wide multi-measure sheets scroll on small screens */
 	</style>
 </head>
 <body>
+<div class="wrap">
 
-	<h1>My Drum Lessons</h1>
-	<p>A few grooves I'm working on. Click play on any of them.</p>
+	<header>
+		<h1>My Drum Lessons</h1>
+		<p class="tagline">Grooves, fills, and breakbeats I'm working on. Pick a tab and hit play.</p>
+	</header>
 
 	<!--
-		HOW TO ADD A BEAT:
-		1. In the editor (index.html), build your groove.
-		2. Click Share, copy the FULL url, and grab just the "?..." query part.
-		3. Paste it as the first argument below.
+	==================================================================================
+	  HOW TO ADD A LESSON
+	  -------------------
+	  Find the right section in SECTIONS below and drop in one object:
 
-		Signature: AddGrooveDisplayToPage(grooveURL, showPlayer, linkToEditor, expandPlayer)
-		  showPlayer    -> show the MIDI play controls
-		  linkToEditor  -> add a link to open this groove in the full editor
-		  expandPlayer  -> start with the player expanded
+		{ title: "My Groove",
+		  byline: "Optional — artist / source",   // shown under the title; omit if none
+		  blurb:  "One-line description.",
+		  params: "<paste from the Share dialog>" }
+
+	  For `params`, build the groove in the editor, click Share, and paste the URL.
+	  You can paste the WHOLE share URL or just the part after "Div=" — the builder is
+	  tolerant and figures it out. It auto-adds Mode=view, the Title (from `title`),
+	  TimeSig=4/4, and Measures=1, so you don't repeat those (anything you DO include
+	  in `params`, like Measures=2 or a different TimeSig, overrides the default).
+	==================================================================================
 	-->
+	<script>
+	"use strict";
 
-	<div class="lesson">
-		<h2>Pat Boone Debbie Boone</h2>
-		<p>Classic LRLRL fill.</p>
-		<script>
-			GrooveDisplay.AddGrooveDisplayToPage(
-				'?Mode=view&TimeSig=4/4&Div=16&Tempo=80&Measures=2&H=|x-x-x-x-x-x-x-x-|x-x-x-x-x-x-x-x-|&S=|----O-------O---|----O---O-O-OOO-|&K=|o-------o-------|o-------o-------|',
-				true, true, true);
-		</script>
-	</div>
+	var SECTIONS = [
+		{
+			id: "fills", label: "Fills",
+			grooves: [
+				{ title: "Pat Boone Debbie Boone",
+				  blurb: "Classic LRLRL fill.",
+				  params: "Div=16&Tempo=80&Measures=2&H=|x-x-x-x-x-x-x-x-|x-x-x-x-x-x-x-x-|&S=|----O-------O---|----O---O-O-OOO-|&K=|o-------o-------|o-------o-------|" }
+			]
+		},
+		{
+			id: "grooves", label: "Grooves",
+			grooves: [
+				{ title: "8th Note Rock",
+				  blurb: "The foundational groove — steady 8th notes on the hats, backbeat on 2 and 4.",
+				  params: "Div=8&Tempo=80&H=|xxxxxxxx|&S=|--O---O-|&K=|o---o---|" },
+				{ title: "Purdie Shuffle",
+				  blurb: "A half-time shuffle with ghost notes — slow it down and keep the ghosts soft.",
+				  params: "Div=12&Swing=0&Tempo=100&H=|x-xx-xx-xx-x|&S=|-g--g-Og--g-|&K=|o----o-----o|" }
+			]
+		},
+		{
+			id: "breakbeats", label: "Breakbeats",
+			grooves: [
+				{ title: "The Amen Break",
+				  byline: "Gregory Coleman (The Winstons, “Amen, Brother”)",
+				  blurb: "Backbeats on 2 and 4 with ghost notes, kick on 1 and the “&”, and driving kicks into beat 3. Authentic tempo is brisk (~136) — slow it down to drill the ghosts.",
+				  params: "Div=16&Tempo=136&Author=Gregory%20Coleman&H=|x-x-x-x-x-x-x-x-|&S=|----O--g-g--O---|&K=|o-o-------oo----|" },
+				{ title: "Funky Drummer",
+				  byline: "Clyde Stubblefield (James Brown)",
+				  blurb: "The single-handed 16th-note hi-hat pattern is the challenge, with two open hi-hats, ghost notes around the backbeats, and the tricky ghost on the “a” of 3 right before beat 4.",
+				  params: "Div=16&Tempo=100&Author=Clyde%20Stubblefield&H=|xxxxxxxo+xxo+xxx|&S=|---gO-g--g-gO-g-|&K=|o-o-----o--o----|" },
+				{ title: "Think (About It)",
+				  byline: "Lyn Collins",
+				  blurb: "Sampled all over hip-hop — e.g. “You Ain’t Heard Nuttin’ Yet” by Heavy D and the Boyz.",
+				  params: "Div=16&Tempo=113&Measures=2&Author=Lyn%20Collins&H=|x-x-x-x-x-x-x-x-|o---x-x-x-x-x-x-|&S=|----O--g-gg-O---|----O--g-gg-O---|&K=|o---------------|o---------------|" },
+				{ title: "Chinese Chicken",
+				  byline: "Duke Williams and the Extremes",
+				  blurb: "Control strokes in bars 1, 2, and 4.",
+				  params: "Div=16&Tempo=116&Measures=4&Author=Duke%20Williams%20and%20the%20Extremes&H=|x-x-x-X-X-X-x-X-|x-x-x-X-X-X-x-o-|x-x-x-X-X-X-x-X-|x-X-x-X---------|&S=|-g--Og-O----O--g|-g--O--O----Og-g|-g--O--O----O---|O---Og-O-OOOOOOO|&K=|o-------o-o-----|o--o----o-o-----|o--o----o-o-----|--------o-------|" }
+			]
+		}
+	];
 
-	<div class="lesson">
-		<h2>8th Note Rock</h2>
-		<p>The foundational groove — steady 8th notes on the hats, backbeat on 2 and 4.</p>
-		<script>
-			GrooveDisplay.AddGrooveDisplayToPage(
-				'?Mode=view&TimeSig=4/4&Div=8&Tempo=80&Measures=1&H=|xxxxxxxx|&S=|--O---O-|&K=|o---o---|',
-				true, true, true);
-		</script>
-	</div>
+	// --- Tolerant URL builder -------------------------------------------------
+	// Accepts a full share URL, a "?..." query, or just the "Div=...&H=..." tail.
+	// Auto-adds Mode=view, Title (from entry.title), TimeSig=4/4, Measures=1 unless
+	// the pasted params already specify them (an explicit value always wins).
+	function buildGrooveUrl(entry) {
+		var raw = (entry.params || "").trim();
+		var q = raw.indexOf("?");
+		if (q !== -1) raw = raw.slice(q + 1);          // drop everything up to '?'
 
-	<div class="lesson">
-		<h2>Purdie Shuffle</h2>
-		<p>A half-time shuffle with ghost notes — slow it down and keep the ghosts soft.</p>
-		<script>
-			GrooveDisplay.AddGrooveDisplayToPage(
-				'?Mode=view&TimeSig=4/4&Div=12&Swing=0&Tempo=100&Title=Purdie%20Shuffle&Measures=1&H=|x-xx-xx-xx-x|&S=|-g--g-Og--g-|&K=|o----o-----o|',
-				true, true, true);
-		</script>
-	</div>
+		var pairs = raw.split("&").filter(Boolean);
+		var have = {};
+		pairs.forEach(function (p) { have[p.split("=")[0].toLowerCase()] = true; });
 
-	<h1>Classic Breakbeats</h1>
-	<p>The two most-sampled drum breaks in history. These are the core one-bar grooves
-	   transcribed onto the 16th-note grid — the original recordings drift in timing and
-	   vary bar to bar, so treat these as the playable skeleton and add your own feel.</p>
+		var out = ["Mode=view"];                        // leading param is sacrificial (parser strips first char of the string, i.e. the '?')
+		if (!have.title && entry.title) out.push("Title=" + encodeURIComponent(entry.title));
+		if (!have.timesig)              out.push("TimeSig=4/4");
+		if (!have.measures)             out.push("Measures=1");
+		pairs.forEach(function (p) {
+			if (p.split("=")[0].toLowerCase() !== "mode") out.push(p);  // we already added Mode
+		});
+		return "?" + out.join("&");
+	}
 
-	<div class="lesson">
-		<h2>The Amen Break <small>— Gregory Coleman (The Winstons, "Amen, Brother")</small></h2>
-		<p>Backbeats on 2 and 4 with ghost notes, kick on 1 and the "&", and the driving
-		   kicks into beat 3. Authentic tempo is brisk (~136) — slow it down to drill the ghosts.</p>
-		<script>
-			GrooveDisplay.AddGrooveDisplayToPage(
-				'?Mode=view&TimeSig=4/4&Div=16&Tempo=136&Title=Amen%20Break&Author=Gregory%20Coleman&Measures=1&H=|x-x-x-x-x-x-x-x-|&S=|----O--g-g--O---|&K=|o-o-------oo----|',
-				true, true, true);
-		</script>
-	</div>
+	// --- Tiny HTML escaper for the display text -------------------------------
+	function esc(s) {
+		return String(s == null ? "" : s)
+			.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+	}
 
-	<div class="lesson">
-		<h2>Funky Drummer <small>— Clyde Stubblefield (James Brown)</small></h2>
-		<p>The single-handed 16th-note hi-hat pattern is the challenge here, with two open
-		   hi-hats (the <code>o</code>/<code>+</code> open-then-close), ghost notes peppered
-		   around the backbeats, and the tricky ghost on the "a" of 3 right before beat 4.</p>
-		<script>
-			GrooveDisplay.AddGrooveDisplayToPage(
-				'?Mode=view&TimeSig=4/4&Div=16&Tempo=100&Title=Funky%20Drummer&Author=Clyde%20Stubblefield&Measures=1&H=|xxxxxxxo+xxo+xxx|&S=|---gO-g--g-gO-g-|&K=|o-o-----o--o----|',
-				true, true, true);
-		</script>
-	</div>
+	// --- Rendering / routing --------------------------------------------------
+	var rendered = {};   // section id -> true once its embeds are drawn (lazy + cached)
 
-	<div class="lesson">
-		<h2>Think (About It) <small>— Lyn Collins Cover</small></h2>
-		<p>This break has been sampled on records such as "You Ain't Heard Nuttin Yet" by Heavy D and the Boyz.</p>
-		<script>
-			GrooveDisplay.AddGrooveDisplayToPage(
-				'?Mode=view&TimeSig=4/4&Div=16&Title=Think%20(About%20It)&Author=Lyn%20Collins&Tempo=113&Measures=2&H=|x-x-x-x-x-x-x-x-|o---x-x-x-x-x-x-|&S=|----O--g-gg-O---|----O--g-gg-O---|&K=|o---------------|o---------------|',
-				true, true, true);
-		</script>
-	</div>
+	function sectionById(id) {
+		for (var i = 0; i < SECTIONS.length; i++) if (SECTIONS[i].id === id) return SECTIONS[i];
+		return null;
+	}
 
-	<div class="lesson">
-		<h2>Chinese Chicken <small>— Duke Williams and the Extremes</small></h2>
-		<p>Control strokes in bars 1, 2, and 4</p>
-		<script>
-			GrooveDisplay.AddGrooveDisplayToPage(
-				'?Mode=view&TimeSig=4/4&Div=16&Title=Chinese%20Chicken&Author=Duke%20Williams%20and%20the%20Extremes&Tempo=116&Measures=4&H=|x-x-x-X-X-X-x-X-|x-x-x-X-X-X-x-o-|x-x-x-X-X-X-x-X-|x-X-x-X---------|&S=|-g--Og-O----O--g|-g--O--O----Og-g|-g--O--O----O---|O---Og-O-OOOOOOO|&K=|o-------o-o-----|o--o----o-o-----|o--o----o-o-----|--------o-------|',
-				true, true, true);
-		</script>
-	</div>
+	function renderSection(section) {
+		if (rendered[section.id]) return;
+		var container = document.getElementById("section-" + section.id);
+		container.innerHTML =
+			'<h2 class="section-title">' + esc(section.label) + '</h2>' +
+			section.grooves.map(function (g, i) {
+				return '<article class="card">' +
+					'<h2 class="card-title">' + esc(g.title) +
+						(g.byline ? ' <span class="byline">— ' + esc(g.byline) + '</span>' : '') +
+					'</h2>' +
+					(g.blurb ? '<p class="blurb">' + esc(g.blurb) + '</p>' : '') +
+					'<div class="embed" id="embed-' + section.id + '-' + i + '"></div>' +
+				'</article>';
+			}).join("");
 
-	<!-- Copy a .lesson block above to add more. -->
+		section.grooves.forEach(function (g, i) {
+			// (target, grooveURL, showPlayer, linkToEditor, expandPlayer)
+			GrooveDisplay.AddGrooveDisplayToElementId("embed-" + section.id + "-" + i, buildGrooveUrl(g), true, true, true);
+		});
+		rendered[section.id] = true;
+	}
 
+	function activate(id) {
+		var section = sectionById(id) || SECTIONS[0];
+		SECTIONS.forEach(function (s) {
+			document.getElementById("tab-" + s.id).classList.toggle("active", s.id === section.id);
+			document.getElementById("section-" + s.id).classList.toggle("visible", s.id === section.id);
+		});
+		renderSection(section);   // lazy: only draws the first time it's shown
+	}
+
+	function init() {
+		var tabs = document.getElementById("tabs");
+		var main = document.getElementById("main");
+		SECTIONS.forEach(function (s) {
+			var btn = document.createElement("button");
+			btn.id = "tab-" + s.id;
+			btn.className = "tab";
+			btn.textContent = s.label;
+			btn.onclick = function () { location.hash = s.id; };   // hashchange drives activation
+			tabs.appendChild(btn);
+
+			var sec = document.createElement("section");
+			sec.id = "section-" + s.id;
+			sec.className = "section";
+			main.appendChild(sec);
+		});
+
+		window.addEventListener("hashchange", function () {
+			activate(location.hash.slice(1));
+		});
+
+		activate(location.hash.slice(1));   // initial: from #hash, or defaults to first tab
+	}
+
+	// GrooveScribe's deps finish loading by window 'load'; render then.
+	window.addEventListener("load", init);
+	</script>
+
+	<nav class="tabs" id="tabs"></nav>
+	<div id="main"></div>
+
+</div>
 </body>
 </html>
-
