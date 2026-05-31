@@ -1042,8 +1042,9 @@ function GrooveUtils() {
 			else
 				fullURL += 'GrooveEmbed.html';
 		} else if(url_destination == "fullGrooveScribe") {
-			// asking for the full GrooveScribe link
-			fullURL = 'https://www.mikeslessons.com/gscribe';
+			// asking for the full GrooveScribe link -- point at wherever this app is
+			// hosted (derived from the script location) rather than a fixed domain.
+			fullURL = root.getGrooveUtilsBaseLocation();
 		}
 
 		fullURL += '?';
